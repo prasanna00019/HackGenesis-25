@@ -31,7 +31,7 @@ async def get_blog_recommendation(request: BlogsRecommendationRequest):
     blogs_embeddings = []
     texts = []
     for entry in blogs_data:
-        text = f"{entry.get('title', '')} {entry.get('description', '')} {entry.get('Benefits', '')}"
+        text = f"{entry.get('title', '')}"
         embedding = model.encode(text, convert_to_tensor=True)
         blogs_embeddings.append(embedding)
         texts.append(entry)
@@ -45,9 +45,8 @@ async def get_blog_recommendation(request: BlogsRecommendationRequest):
         if similarity_scores[idx] >= threshold:
             match = {
                 "title": texts[idx].get("title"),
-                "description": texts[idx].get("description"),
-                "benefits": texts[idx].get("Benefits"),
-                "link": texts[idx].get("link", "No link provided")
+                "content": texts[idx].get("content"),
+                "image": texts[idx].get("image", "No image link provided")
             }
             top_matches.append(match)
     if top_matches:

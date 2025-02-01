@@ -1,38 +1,30 @@
-from flask import Flask, request, jsonify
-from textblob import TextBlob
-from flask_cors import CORS  # To handle cross-origin requests
+from fastapi import FastAPI, HTTPException, APIRouter
+from pydantic import BaseModel
+from transformers import pipeline
 
-app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+# Define the request model
+class SentimentRequest(BaseModel):
+    text: str
 
-@app.route('/analyze-sentiment', methods=['POST'])
-def analyze_sentiment():
-    # Get the journal entry from the request
-    data = request.json
-    journal_entry = data.get('text')
-    
-    # Check if text is provided
+# Load a pre-trained sentiment analysis model
+sentiment_pipeline = pipeline("sentiment-analysis", model="cardiffnlp/twitter-roberta-base-sentiment")
+
+router=APIRouter()
+
+@router.post("/analyze-sentiment")
+async def analyze_sentiment(request: SentimentRequest):
+    journal_entry = request.text.strip()
+
     if not journal_entry:
-        return jsonify({"error": "No text provided"}), 400
-    
-    # Analyze sentiment using TextBlob
-    analysis = TextBlob(journal_entry)
-    polarity = analysis.sentiment.polarity
-    
-    # Determine sentiment based on polarity
-    if polarity > 0:
-        sentiment = "Positive"
-    elif polarity < 0:
-        sentiment = "Negative"
-    else:
-        sentiment = "Neutral"
-    
-    # Return the result
-    return jsonify({
+        raise HTTPException(status_code=400, detail="No text provided")
+
+    # Analyze sentiment using Hugging Face Transformers
+    result = sentiment_pipeline(journal_entry)[0]
+    sentiment = result["label"]
+    confidence = result["score"]
+
+    return {
         "text": journal_entry,
         "sentiment": sentiment,
-        "polarity": polarity
-    })
-
-if __name__ == '__main__':
-    app.run(debug=True)  # Run the Flask app
+        "confidence": confidence,
+    }

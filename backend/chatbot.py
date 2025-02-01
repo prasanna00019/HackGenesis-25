@@ -95,24 +95,24 @@ def setup_qa_chain(vector_db, llm):
     return qa_chain
 
 
-# @router.on_event("startup")
-# def startup_event():
-#     """Initialize the LLM, vector DB, and QA chain at startup."""
-#     global llm, qa_chain
+@router.on_event("startup")
+def startup_event():
+    """Initialize the LLM, vector DB, and QA chain at startup."""
+    global llm, qa_chain
  
-#     print("Initializing Chatbot components...")
-#     llm = initialize_llm()
+    print("Initializing Chatbot components...")
+    llm = initialize_llm()
 
-#     # Check if the vector database already exists
-#     if not os.path.exists(CHROMA_DB_DIR):
-#         vector_db = create_vector_db()
-#     else:
-#         embeddings = HuggingFaceBgeEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-#         vector_db = Chroma(persist_directory=CHROMA_DB_DIR, embedding_function=embeddings)
-#         print("Loaded existing ChromaDB from disk.")
+    # Check if the vector database already exists
+    if not os.path.exists(CHROMA_DB_DIR):
+        vector_db = create_vector_db()
+    else:
+        embeddings = HuggingFaceBgeEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+        vector_db = Chroma(persist_directory=CHROMA_DB_DIR, embedding_function=embeddings)
+        print("Loaded existing ChromaDB from disk.")
 
-#     qa_chain = setup_qa_chain(vector_db, llm)
-#     print("Chatbot is ready to receive queries.")
+    qa_chain = setup_qa_chain(vector_db, llm)
+    print("Chatbot is ready to receive queries.")
 
 @router.post("/chat")
 def chat_endpoint(chat_request: ChatRequest):

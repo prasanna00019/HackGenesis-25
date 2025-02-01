@@ -1,8 +1,8 @@
 import Blogs from "../models/BlogModel.js";
 import redisClient from "../utils/RedisClient.js";
 export const createBlog = async (req, res) => {
-    const { title, content,Author } = req.body;
-    const newBlog = new Blogs({ title, content ,Author});
+    const { title, content,Author ,image} = req.body;
+    const newBlog = new Blogs({ title, content ,Author,image});
     try {
         await newBlog.save();
         res.status(201).json(newBlog);
@@ -27,7 +27,13 @@ export const getAllBlogs = async (req, res) => {
 export const getBlogById = async (req, res) => {
     const { id } = req.params;
     try {
+        const cachedBlog = await redisClient.get(`blog:${id}`);
+        if (cachedBlog) {
+            res.status(200).json(JSON.parse(cachedBlog));
+            return;
+        }
         const blog = await Blogs.findById(id);  
+        await redisClient.set(`blog:${id}`, JSON.stringify(blog));
         res.status(200).json(blog);
     } catch (error) {
         res.status(404).json({ message: error.message });
