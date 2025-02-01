@@ -5,3 +5,4 @@ langchain
 langchain-groq
 chromadb
 huggingface-hub
+langchain_community
