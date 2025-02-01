@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Journal Sentiment Analysis</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 10px;
+            font-size: 16px;
+        }
+        button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f4f4f4;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Journal Sentiment Analysis</h1>
+    <textarea id="journal-entry" placeholder="Write your journal entry here..."></textarea>
+    <button onclick="analyzeSentiment()">Analyze Sentiment</button>
+    <div id="result"></div>
+
+    <script>
+        async function analyzeSentiment() {
+            const journalEntry = document.getElementById('journal-entry').value;
+            if (!journalEntry) {
+                alert("Please enter a journal entry!");
+                return;
+            }
+
+            // Call the backend API
+            const response = await fetch('http://127.0.0.1:5000/analyze-sentiment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ text: journalEntry }),
+            });
+
+            const result = await response.json();
+
+            // Display the result
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `
+                <p><strong>Journal Entry:</strong> ${result.text}</p>
+                <p><strong>Sentiment:</strong> ${result.sentiment}</p>
+                <p><strong>Polarity Score:</strong> ${result.polarity.toFixed(2)}</p>
+            `;
+        }
+    </script>
+</body>
+</html>

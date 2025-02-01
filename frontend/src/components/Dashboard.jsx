@@ -9,12 +9,13 @@ import Chants from './Chants';
 import AISupportChatbot from './AISupportChatbot';
 import MemoryGame from './MemoryGame';
 import AngerManagementTest from './AngerManagementTest';
+import DepressionTest from './DepressionTest';
 
 const Dashboard = () => {
   const [activeSection, setActiveSection] = useState(''); // Track active section
  const navigate=useNavigate();
   const sections = [
-    { id: 'stressTest', label: 'Stress Test' },
+    { id: 'stressTest', label: 'Test' },
     { id: 'aiSupport', label: 'AI Support' },
     { id: 'games', label: 'Games' },
     { id: 'gratitudeJournal', label: 'Gratitude Journal' },
@@ -27,7 +28,8 @@ const Dashboard = () => {
   const renderContent = () => {
     switch (activeSection) {
       case 'stressTest':
-        return <AngerManagementTest/>
+        return  <div className='max-h-screen flex w-full gap-10 overflow-auto'> <AngerManagementTest/> <DepressionTest/> </div>
+      
       case 'aiSupport':
         return <AISupportChatbot/>
       case 'games':
@@ -37,13 +39,13 @@ const Dashboard = () => {
       case 'emotionalJournal':
         return <EmotionalJournal/>
       case 'yogaSection':
-        return 'yoga'
+        return <Yoga/>
       case 'meditationSection':
         return <Meditation/>
       case 'blogs':
-        return 'blogs'
+        return <Blogs/>
       case 'chantsSection':
-        return 'chants'
+        return <Chants/>
       default:
         return <p>Select a section from the sidebar</p>;
     }
