@@ -8,6 +8,7 @@ import Blogs from './Blogs';
 import Chants from './Chants';
 import AISupportChatbot from './AISupportChatbot';
 import MemoryGame from './MemoryGame';
+import AngerManagementTest from './AngerManagementTest';
 
 const Dashboard = () => {
   const [activeSection, setActiveSection] = useState(''); // Track active section
@@ -26,7 +27,7 @@ const Dashboard = () => {
   const renderContent = () => {
     switch (activeSection) {
       case 'stressTest':
-        return <p>Welcome to the Stress Test Section</p>;
+        return <AngerManagementTest/>
       case 'aiSupport':
         return <AISupportChatbot/>
       case 'games':
@@ -36,13 +37,13 @@ const Dashboard = () => {
       case 'emotionalJournal':
         return <EmotionalJournal/>
       case 'yogaSection':
-        return <Yoga/>
+        return 'yoga'
       case 'meditationSection':
         return <Meditation/>
       case 'blogs':
-        return <Blogs/>
+        return 'blogs'
       case 'chantsSection':
-        return <Chants/>
+        return 'chants'
       default:
         return <p>Select a section from the sidebar</p>;
     }

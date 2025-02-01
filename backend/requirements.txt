@@ -7,3 +7,4 @@ chromadb
 huggingface-hub
 langchain_community
 sentence-transformers
+pymongo
