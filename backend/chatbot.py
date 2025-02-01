@@ -31,6 +31,9 @@ CHROMA_DB_DIR = "./chroma_db"                # Directory to persist the vector s
 
 ALLOWED_TOPICS = [
     "mental health", "wellbeing", "yoga", "spirituality", "meditation", "mindfulness"
+    ,"depression","anxiety","stress","trauma","addiction","relationships","self-care"
+    ,"emotional health","physical health","emotional well-being","physical well-being"
+    ,"mental well-being","mental wellness","emotional wellness","physical wellness"
 ]
 
 REJECTION_MESSAGE = "I'm sorry, but I only answer questions related to mental health, wellbeing, yoga, and spiritual topics."
