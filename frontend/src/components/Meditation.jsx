@@ -14,7 +14,7 @@ const Meditation = () => {
   }, []);
 
   return (
-    <div className="container mx-auto px-4 py-6">
+    <div className="container mx-auto px-4 py-6 overflow-auto max-h-screen">
       <h2 className="text-3xl font-bold mb-6 text-center text-yellow-700">Meditation Practices</h2>
       {data.length === 0 ? (
         <p className="text-center text-gray-600">Loading Meditation data...</p>

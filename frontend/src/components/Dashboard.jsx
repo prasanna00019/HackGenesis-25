@@ -7,6 +7,7 @@ import Meditation from './Meditation';
 import Blogs from './Blogs';
 import Chants from './Chants';
 import AISupportChatbot from './AISupportChatbot';
+import MemoryGame from './MemoryGame';
 
 const Dashboard = () => {
   const [activeSection, setActiveSection] = useState(''); // Track active section
@@ -29,7 +30,7 @@ const Dashboard = () => {
       case 'aiSupport':
         return <AISupportChatbot/>
       case 'games':
-        return <p>Here you can play Games</p>;
+        return <MemoryGame/>
       case 'gratitudeJournal':
          return <GratitudeJournal/>
       case 'emotionalJournal':
