@@ -1,0 +1,12 @@
+body {
+    font-family: 'Arial', sans-serif;
+  }
+  
+  button {
+    cursor: pointer;
+  }
+  
+  button:focus {
+    outline: none;
+  }
+  

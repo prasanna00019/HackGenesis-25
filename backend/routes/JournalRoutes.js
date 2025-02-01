@@ -1,0 +1,12 @@
+import express from 'express';
+import { AddGratitudeEntry, DeleteGratitudeEntryById, getAllGratitudeEntries, UpdateGratitudeEntryById } from '../controllers/JournalControllers.js';
+const router=express.Router();
+router.post('/AddGratitudeEntry/:userId',AddGratitudeEntry);
+router.get('/GetAllGratitudeEntries/:userId',getAllGratitudeEntries);
+router.delete('/DeleteGratitudeEntry/:entryId/:userId',DeleteGratitudeEntryById);
+router.put('/UpdateGratitudeEntry/:entryId/:userId',UpdateGratitudeEntryById);
+router.post('/AddEmotionalJournalEntry');
+router.get('/GetAllEmotionalJournalEntries/:userId');
+router.delete('/DeleteEmotionalJournalEntry/:entryId/:userId');
+router.put('/UpdateEmotionalJournalEntry/:entryId/:userId');
+export default router;
