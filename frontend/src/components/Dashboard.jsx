@@ -73,7 +73,24 @@ const Dashboard = () => {
       case "Practice":
         return <Practice/>    
       default:
-        return <p>Select a section from the sidebar</p>;
+        // return <p>Select a section from the sidebar</p>;
+        return <div className="flex justify-center items-center h-screen bg-gradient-to-r from-pink-100 to-pink-200 p-8">
+        <div className="flex items-center bg-white shadow-2xl rounded-2xl overflow-hidden max-w-4xl">
+          <img
+            src="https://firebasestorage.googleapis.com/v0/b/chat-app-f65de.appspot.com/o/home1.jpeg?alt=media&token=35bb3aa5-bf33-4899-befe-f548b97339f0"
+            alt="Welcome"
+            className="w-72 h-72 object-cover"
+          />
+          <div className="p-8">
+            <h1 className="text-4xl font-bold text-gray-800 mb-4">
+              Welcome to Dashboard
+            </h1>
+            <p className="text-lg text-gray-600">
+              Your personalized space to explore yoga , meditation, spirituality. Stay productive with ease.
+            </p>
+          </div>
+        </div>
+      </div>
     }
   };
 

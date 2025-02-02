@@ -76,7 +76,7 @@ async def get_recommendations(request: RecommendationRequest):
     "title": entry.get("title", "No title provided"),
     "description": entry.get("description", "No description provided"),
     "benefits": entry.get("Benefits", "No benefits provided"),
-    "link": f"http://localhost:5000/article/{entry['_id']}" if entry["type"] == "blogs" else entry.get("link", "No link provided"),
+    "link": f"http://localhost:5180/article/{entry['_id']}" if entry["type"] == "blogs" else entry.get("link", "No link provided"),
     "content": entry.get("content", "No content provided"),
     "image": entry.get("image", "No image provided")
 }
