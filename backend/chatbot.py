@@ -33,7 +33,15 @@ ALLOWED_TOPICS = [
     "mental health", "wellbeing", "yoga", "spirituality", "meditation", "mindfulness"
     ,"depression","anxiety","stress","trauma","addiction","relationships","self-care"
     ,"emotional health","physical health","emotional well-being","physical well-being"
-    ,"mental well-being","mental wellness","emotional wellness","physical wellness"
+    ,"mental well-being","mental wellness","emotional wellness","physical wellness","mental",
+    "sad","depressed","anxious","stressed","traumatized","addicted","relationship",
+    "self care","emotional health","physical health","emotional well being","physical well being",
+    "mental well being","mental wellness","mental health",
+    "mental wellness","emotional wellness","physical wellness","wellbeing","yoga",
+    "spirituality","meditation","mindfulness","depression","anxiety","stress","trauma","addiction",
+    "relationships","self care","emotional health","physical health","emotional well being",
+    "physical well being","mental well being","physical wellness","Hi","how"
+
 ]
 
 REJECTION_MESSAGE = "I'm sorry, but I only answer questions related to mental health, wellbeing, yoga, and spiritual topics."

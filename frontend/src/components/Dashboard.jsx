@@ -7,15 +7,11 @@ import {
   Book,
   Smile,
   StretchHorizontal,
+  MessageCircle ,
   PenTool,
   Music2,
   User2Icon,
 } from "lucide-react";
-import AngerManagementTest from "./AngerManagementTest";
-import DepressionTest from "./DepressionTest";
-import SocialAnxietyTest from "./SocialAnxietyTest";
-import EmotionalStabilityTest from "./EmotionalStabilityTest";
-import ADHDTest from "./ADHDTest";
 import AISupportChatbot from "./AISupportChatbot";
 import AffirmationGame from "./AffirmationGame";
 import MemoryGame from "./MemoryGame";
@@ -26,7 +22,9 @@ import Yoga from "./Yoga";
 import EmotionalJournal from "./EmotionalJournal";
 import Chants from "./Chants";
 import { useAuthContext } from "../context/Authcontext";
-
+import TestSection from "./TestSection";
+import Quote from "./Quote";
+import Practice from "./Practice";
 const Dashboard = () => {
   const [activeSection, setActiveSection] = useState(""); // Track active section
   const navigate = useNavigate();
@@ -41,17 +39,14 @@ const Dashboard = () => {
     { id: "meditationSection", label: "Meditation Section", icon: Activity },
     { id: "blogs", label: "Blogs", icon: PenTool },
     { id: "chantsSection", label: "Chants Section", icon: Music2 },
+    { id: "Quotes", label: "Quotes", icon: MessageCircle },
+    {id:"Practice",label:"Practice",icon:User2Icon}
   ];
 
   const renderContent = () => {
     switch (activeSection) {
       case "stressTest":
-        return (
-          <div className="max-h-screen max-w-screen  flex flex-col gap-2 overflow-auto">
-            <AngerManagementTest /> <DepressionTest />
-            <EmotionalStabilityTest /> <SocialAnxietyTest /> <ADHDTest />
-          </div>
-        );
+        return <TestSection/>
 
       case "aiSupport":
         return <AISupportChatbot/>;
@@ -73,15 +68,20 @@ const Dashboard = () => {
         return <Blogs/>;
       case "chantsSection":
         return <Chants/>;
+      case "Quotes":
+        return <Quote/>;
+      case "Practice":
+        return <Practice/>    
       default:
         return <p>Select a section from the sidebar</p>;
     }
   };
 
   return (
-    <div style={{ display: "flex", height: "100vh" }}>
+    <div className="font-bold text-[18px]" style={{ display: "flex", height: "100vh" }}>
       {/* Sidebar */}
       <div className="p-5 flex flex-col justify-between items-start h-screen w-[20%] bg-pink-300">
+       <div className="flex gap-2 justify-between">
         <svg
           id="logo-70"
           width="78"
@@ -101,7 +101,9 @@ const Dashboard = () => {
             fill="#394149"
           ></path>
         </svg>
-
+        <button onClick={()=>{navigate('/landing');}} className="bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-white font-semibold py-2 px-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+  BACK TO HOME
+</button>        </div>
         <div className="my-6">
           {sections.map((menu) => {
             const Icon = menu.icon; // Get the icon component

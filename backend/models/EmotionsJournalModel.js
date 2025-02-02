@@ -6,7 +6,6 @@ const emotionEntrySchema = new mongoose.Schema({
   emotion: { type: String, required: true }, // Emotion felt (e.g., happy, sad, angry)
   content: { type: String, required: true }, // Description of the emotions felt
   intensity: { type: Number, min: 1, max: 10, default: 5 }, // Emotion intensity (1-10 scale)
-  category: { type: String, default: '' }, // Optional: Category of the emotion (e.g., "Work", "Personal")
 });
 
 // Define the EmotionsJournal schema

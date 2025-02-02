@@ -1,93 +1,242 @@
-// import React, { useState, useRef } from 'react';
-// import JournalSentimentAnalysis from './JournalSentimentAnalysis';
+// import React, { useState, useRef, useEffect } from "react";
+// import axios from "axios";
+// import { useAuthContext } from "../context/Authcontext";
 
 // const EmotionalJournal = () => {
-//   const [entries, setEntries] = useState([]); // Stores all emotional journal entries
-//   const [currentEntry, setCurrentEntry] = useState(''); // Holds current input
-//   const [editIndex, setEditIndex] = useState(null); // Index for editing entries
+//   const [entries, setEntries] = useState([]);
+//   const [currentEntry, setCurrentEntry] = useState("");
+//   const [currentIntensity, setCurrentIntensity] = useState(5);
+//   const [currentEmotion, setCurrentEmotion] = useState("");
+//   const [editId, setEditId] = useState(null);
+//   const [sentimentResult, setSentimentResult] = useState(null);
+//   const [expandedDates, setExpandedDates] = useState({}); // Tracks expanded/collapsed state for each date
 //   const inputRef = useRef(null);
+//   const { Authuser } = useAuthContext();
 
-//   // Handle saving a new or edited entry
-//   const handleSave = () => {
-//     if (!currentEntry.trim()) return;
+//   useEffect(() => {
+//     if (Authuser) {
+//       fetchEntries();
+//     }
+//   }, [Authuser]);
 
-//     if (editIndex !== null) {
-//       // Edit existing entry
-//       const updatedEntries = [...entries];
-//       updatedEntries[editIndex] = currentEntry;
-//       setEntries(updatedEntries);
-//       setEditIndex(null);
-//     } else {
-//       // Add new entry
-//       setEntries([...entries, currentEntry]);
+//   // Fetch all journal entries
+//   const fetchEntries = async () => {
+//     try {
+//       const response = await axios.get(
+//         `http://localhost:5000/api/Journal/GetAllEmotionalJournalEntries/${Authuser?._id}`
+//       );
+//       setEntries(response.data.data.entries || []);
+//     } catch (err) {
+//       console.error("Error fetching entries:", err);
+//     }
+//   };
+
+//   // Handle save or update entry
+//   const handleSave = async () => {
+//     if (!currentEntry.trim() || !currentEmotion.trim()) return;
+//     if (!currentIntensity || currentIntensity < 0 || currentIntensity > 10 || !Number.isInteger(currentIntensity)) {
+//       alert("Intensity must be an integer between 0 and 10");
+//       return;
 //     }
 
-//     setCurrentEntry('');
+//     try {
+//       // Analyze sentiment of the current entry
+//       const sentimentResponse = await axios.post(
+//         "http://localhost:8000/score/analyze-sentiment",
+//         { text: currentEntry }
+//       );
+
+//       const { sentiment, confidence } = sentimentResponse.data;
+
+//       // Map the sentiment label to readable text
+//       const readableSentiment = mapSentimentLabel(sentiment);
+
+//       // Set sentiment result for display
+//       setSentimentResult({
+//         sentiment: readableSentiment,
+//         confidence: (confidence * 100).toFixed(2), // Convert to percentage
+//       });
+
+//       const payload = {
+//         content: currentEntry,
+//         intensity: currentIntensity,
+//         emotion: currentEmotion,
+//         sentiment: readableSentiment,
+//         confidence: confidence,
+//         date: new Date().toISOString().split('T')[0], // Store the date in YYYY-MM-DD format
+//       };
+
+//       if (editId) {
+//         await axios.put(
+//           `http://localhost:5000/api/Journal/UpdateEmotionalJournalEntry/${editId}/${Authuser?._id}`,
+//           payload
+//         );
+//         setEntries((prev) =>
+//           prev.map((entry) =>
+//             entry._id === editId ? { ...entry, ...payload } : entry
+//           )
+//         );
+//         setEditId(null);
+//       } else {
+//         const response = await axios.post(
+//           `http://localhost:5000/api/Journal/AddEmotionalJournalEntry/${Authuser?._id}`,
+//           payload
+//         );
+//         setEntries((prev) => [...prev, response.data.journal.entries.pop()]);
+//       }
+
+//       setCurrentEntry("");
+//       setCurrentIntensity(5);
+//       setCurrentEmotion("");
+//       inputRef.current.focus();
+//     } catch (err) {
+//       console.error("Error saving entry:", err);
+//     }
+//   };
+
+//   // Function to map sentiment labels to readable text
+//   const mapSentimentLabel = (label) => {
+//     switch (label) {
+//       case "LABEL_0":
+//         return "NEGATIVE";
+//       case "LABEL_1":
+//         return "NEUTRAL";
+//       case "LABEL_2":
+//         return "POSITIVE";
+//       default:
+//         return "UNKNOWN";
+//     }
+//   };
+
+//   // Handle edit entry
+//   const handleEdit = (entry) => {
+//     setCurrentEntry(entry.content);
+//     setCurrentIntensity(entry.intensity);
+//     setCurrentEmotion(entry.emotion);
+//     setEditId(entry._id);
 //     inputRef.current.focus();
 //   };
 
-//   // Handle editing an entry
-//   const handleEdit = (index) => {
-//     setCurrentEntry(entries[index]);
-//     setEditIndex(index);
-//     inputRef.current.focus();
+//   // Handle delete entry
+//   const handleDelete = async (entryId) => {
+//     try {
+//       await axios.delete(
+//         `http://localhost:5000/api/Journal/DeleteEmotionalJournalEntry/${entryId}/${Authuser?._id}`
+//       );
+//       setEntries(entries.filter((entry) => entry._id !== entryId));
+//     } catch (err) {
+//       console.error("Error deleting entry:", err);
+//     }
 //   };
 
-//   // Handle deleting an entry
-//   const handleDelete = (index) => {
-//     setEntries(entries.filter((_, i) => i !== index));
+//   // Group entries by date
+//   const groupEntriesByDate = () => {
+//     const groupedEntries = {};
+
+//     entries.forEach((entry) => {
+//       const date = new Date(entry.date).toLocaleDateString("en-US", {
+//         year: "numeric",
+//         month: "long",
+//         day: "numeric",
+//       }); // Format date properly
+//       if (!groupedEntries[date]) {
+//         groupedEntries[date] = [];
+//       }
+//       groupedEntries[date].push(entry);
+//     });
+
+//     return groupedEntries;
 //   };
+
+//   // Toggle expanded state for a date
+//   const toggleExpand = (date) => {
+//     setExpandedDates((prev) => ({
+//       ...prev,
+//       [date]: !prev[date], // Toggle expanded state
+//     }));
+//   };
+
+//   const groupedEntries = groupEntriesByDate();
+
+//   // Array of colors for different days
+//   const colors = ["bg-pink-50", "bg-blue-50", "bg-green-50", "bg-yellow-50"];
 
 //   return (
-//     <div className='overflow-y-auto max-h-screen bg-[#F9F6F6] ' style={{ padding: '2rem', fontFamily: 'Arial, sans-serif' }}>
+//     <div className="overflow-y-auto max-h-screen p-8 font-sans">
 //       {/* Information Section */}
 //       <section>
-//         <h1>Emotional Journal</h1>
-//         <h2>The Importance of Journaling Your Emotions</h2>
-//         <p>
-//           Journaling your emotions is a powerful practice for emotional clarity and mental health.
-//           It allows you to process and understand your feelings, reducing stress and anxiety. By
-//           writing about your emotions, you can reflect on patterns, triggers, and find ways to manage
-//           your emotional responses.
+//         <h1 className="text-3xl font-bold text-pink-700">Emotional Journal</h1>
+//         <h2 className="text-2xl font-semibold mt-4">
+//           The Importance of Journaling Your Emotions
+//         </h2>
+//         <p className="mt-2 text-gray-700">
+//           Journaling your emotions is a powerful practice for emotional clarity
+//           and mental health. It allows you to process and understand your
+//           feelings, reducing stress and anxiety. By writing about your emotions,
+//           you can reflect on patterns, triggers, and find ways to manage your
+//           emotional responses.
 //         </p>
-
-//         <h2>How to Journal Your Emotions</h2>
-//         <ul>
-//           <li>Be honest with yourself—don't hold back your feelings.</li>
-//           <li>Write freely without judgment, and let the words flow naturally.</li>
-//           <li>Focus on what you're feeling right now, without worrying about grammar or structure.</li>
-//           <li>Reflect on why you feel this way, and explore the emotions behind your thoughts.</li>
-//         </ul>
-
-//         <h2>How to Get Started</h2>
-//         <p>
-//           To begin journaling your emotions, simply write down what you're feeling in the moment. Use
-//           this space to express your joy, sadness, anger, or any emotion you're experiencing. This
-//           practice helps build emotional intelligence and resilience over time.
+//       <div className="flex gap-4">
+//        <img src="https://firebasestorage.googleapis.com/v0/b/chat-app-f65de.appspot.com/o/generate%20a%20image%20of%20a%20journal%20used%20for%20journalling%20emotions%20_%2002-02-2025%20at%2003-02-42.jpeg?alt=media&token=175e655b-c0e3-45e2-8f00-b9555e86eb84" width={300} alt="" />
+//        <img src="https://firebasestorage.googleapis.com/v0/b/chat-app-f65de.appspot.com/o/generate%20a%20image%20of%20a%20journal%20used%20for%20journalling%20emotions%20_%2002-02-2025%20at%2003-02-40.jpeg?alt=media&token=0590c797-69c0-498b-9cc5-6567a370368a" width={300} alt="" />
+//        <img src="https://firebasestorage.googleapis.com/v0/b/chat-app-f65de.appspot.com/o/generate%20a%20image%20of%20a%20journal%20used%20for%20journalling%20emotions%20_%2002-02-2025%20at%2003-02-34.jpeg?alt=media&token=021e065e-3263-4cb1-bf2e-c111c7e74ec6" width={300} alt="" />
+//       </div>
+//         {/* Instructions */}
+//         <h2 className="text-2xl font-semibold mt-4">How to Get Started</h2>
+//         <p className="mt-2 text-gray-700">
+//           To begin journaling your emotions, simply write down what you're
+//           feeling in the moment. Use this space to express your joy, sadness,
+//           anger, or any emotion you're experiencing.
 //         </p>
 //       </section>
 
 //       {/* Journal Entry Section */}
-//       <section style={{ marginTop: '2rem' }}>
-//         <h2>Today's Emotional Entry</h2>
+//       <section className="mt-8">
+//         <h2 className="text-2xl font-semibold">Today's Emotional Entry</h2>
 //         <textarea
 //           ref={inputRef}
 //           value={currentEntry}
 //           onChange={(e) => setCurrentEntry(e.target.value)}
 //           placeholder="What are you feeling today?"
-//           style={{ width: '100%', height: '100px', padding: '0.5rem' }}
+//           className="w-full h-24 p-3 mt-2 border border-gray-300 rounded-md focus:ring focus:ring-pink-400"
 //         />
-//         <div style={{ marginTop: '1rem' }}>
-//           <button onClick={handleSave} style={buttonStyle}>
-//             {editIndex !== null ? 'Update Entry' : 'Save Entry'}
+//         <div className="mt-4">
+//           <label className="block text-gray-700">Intensity (0-10):</label>
+//           <input
+//             type="number"
+//             min="0"
+//             max="10"
+//             value={currentIntensity}
+//             onChange={(e) => setCurrentIntensity(parseInt(e.target.value))}
+//             className="w-full p-2 border border-gray-300 rounded-md focus:ring focus:ring-pink-400"
+//           />
+//         </div>
+//         <div className="mt-4">
+//           <label className="block text-gray-700">Emotion Felt:</label>
+//           <input
+//             type="text"
+//             value={currentEmotion}
+//             onChange={(e) => setCurrentEmotion(e.target.value)}
+//             placeholder="Enter the emotion you're feeling"
+//             className="w-full p-2 border border-gray-300 rounded-md focus:ring focus:ring-pink-400"
+//           />
+//         </div>
+//         <div className="mt-4">
+//           <button
+//             onClick={handleSave}
+//             className="bg-pink-700 text-white px-4 py-2 rounded-full mr-2 hover:bg-pink-800 transition"
+//           >
+//             {editId ? "Update Entry" : "Save Entry"}
 //           </button>
-//           {editIndex !== null && (
+//           {editId && (
 //             <button
 //               onClick={() => {
-//                 setCurrentEntry('');
-//                 setEditIndex(null);
+//                 setCurrentEntry("");
+//                 setCurrentIntensity(5);
+//                 setCurrentEmotion("");
+//                 setEditId(null);
 //               }}
-//               style={{ ...buttonStyle, backgroundColor: 'gray' }}
+//               className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition"
 //             >
 //               Cancel Edit
 //             </button>
@@ -95,101 +244,266 @@
 //         </div>
 //       </section>
 
+//       {/* Sentiment Analysis Result */}
+//       {sentimentResult && (
+//         <section className="mt-8">
+//           <h2 className="text-2xl font-semibold">Sentiment Analysis</h2>
+//           <div className="bg-white p-4 rounded-md shadow-md mt-4">
+//             <p className="text-gray-800">
+//               <strong>Sentiment:</strong> {sentimentResult.sentiment}
+//             </p>
+//             <p className="text-gray-800">
+//               <strong>Confidence:</strong> {sentimentResult.confidence}%
+//             </p>
+//           </div>
+//         </section>
+//       )}
+
 //       {/* Display Entries Section */}
-//       <section style={{ marginTop: '2rem' }}>
-//         <h2>Previous Emotional Entries</h2>
+//       <section className="mt-8">
+//         <h2 className="text-2xl font-semibold">Previous Emotional Entries</h2>
 //         {entries.length === 0 ? (
-//           <p>No entries yet. Start by journaling your emotions above.</p>
+//           <p className="mt-2 text-gray-600">
+//             No entries yet. Start by journaling your emotions above.
+//           </p>
 //         ) : (
-//           <ul style={{ padding: 0, listStyle: 'none' }}>
-//             {entries.map((entry, index) => (
-//               <li key={index} style={entryStyle}>
-//                 <p>{entry}</p>
-//                 <div>
-//                   <button onClick={() => handleEdit(index)} style={smallButtonStyle}>Edit</button>
-//                   <button onClick={() => handleDelete(index)} style={{ ...smallButtonStyle, backgroundColor: 'red' }}>Delete</button>
-//                 </div>
-//               </li>
-//             ))}
-//           </ul>
+//           Object.keys(groupedEntries).map((date, index) => (
+//             <div
+//               key={date}
+//               className={`${colors[index % colors.length]} p-4 rounded-lg shadow-md mt-4`}
+//             >
+//               <h3 className="text-xl font-semibold text-pink-700 mb-4">
+//                 {date}
+//               </h3>
+//               <ul className="space-y-4">
+//                 {groupedEntries[date]
+//                   .slice(0, expandedDates[date] ? groupedEntries[date].length : 3) // Show only 3 entries initially
+//                   .map((entry) => (
+//                     <li
+//                       key={entry._id}
+//                       className="bg-white p-4 rounded-md shadow-md flex flex-col space-y-2"
+//                     >
+//                       <p className="text-gray-800">
+//                         <strong>Journal:</strong> {entry.content}
+//                       </p>
+//                       <p className="text-gray-800">
+//                         <strong>Intensity:</strong> {entry.intensity}/10
+//                       </p>
+//                       <p className="text-gray-800">
+//                         <strong>Emotion:</strong> {entry.emotion}
+//                       </p>
+//                       <div className="flex justify-end">
+//                         <button
+//                           onClick={() => handleEdit(entry)}
+//                           className="bg-pink-700 text-white px-3 py-1 rounded-md mr-2 hover:bg-pink-800 transition"
+//                         >
+//                           Edit
+//                         </button>
+//                         <button
+//                           onClick={() => handleDelete(entry._id)}
+//                           className="bg-red-600 text-white px-3 py-1 rounded-md hover:bg-red-700 transition"
+//                         >
+//                           Delete
+//                         </button>
+//                       </div>
+//                     </li>
+//                   ))}
+//               </ul>
+//               {groupedEntries[date].length > 3 && (
+//                 <button
+//                   onClick={() => toggleExpand(date)}
+//                   className="mt-4 text-pink-700 hover:text-pink-800 transition"
+//                 >
+//                   {expandedDates[date] ? "Show Less..." : "Show More..."}
+//                 </button>
+//               )}
+//             </div>
+//           ))
 //         )}
 //       </section>
-//     <JournalSentimentAnalysis/>
 //     </div>
 //   );
 // };
 
-// // Styles for buttons and entries
-// const buttonStyle = {
-//   backgroundColor: '#6200ea',
-//   color: 'white',
-//   padding: '0.5rem 1rem',
-//   border: 'none',
-//   cursor: 'pointer',
-//   marginRight: '0.5rem',
-// };
-
-// const smallButtonStyle = {
-//   backgroundColor: '#6200ea',
-//   color: 'white',
-//   padding: '0.3rem 0.5rem',
-//   border: 'none',
-//   cursor: 'pointer',
-//   marginRight: '0.5rem',
-// };
-
-// const entryStyle = {
-//   background: '#f5f5f5',
-//   padding: '1rem',
-//   marginBottom: '1rem',
-//   display: 'flex',
-//   justifyContent: 'space-between',
-//   alignItems: 'center',
-// };
-
 // export default EmotionalJournal;
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
+import axios from "axios";
+import { useAuthContext } from "../context/Authcontext";
 
 const EmotionalJournal = () => {
-  const [entries, setEntries] = useState([]); // Stores all emotional journal entries
-  const [currentEntry, setCurrentEntry] = useState(""); // Holds current input
-  const [editIndex, setEditIndex] = useState(null); // Index for editing entries
+  const [entries, setEntries] = useState([]);
+  const [currentEntry, setCurrentEntry] = useState("");
+  const [currentIntensity, setCurrentIntensity] = useState(5);
+  const [currentEmotion, setCurrentEmotion] = useState("");
+  const [editId, setEditId] = useState(null);
+  const [sentimentResult, setSentimentResult] = useState(null);
+  const [expandedDates, setExpandedDates] = useState({});
+  const [recommendations, setRecommendations] = useState([]); // State for recommendations
   const inputRef = useRef(null);
+  const { Authuser } = useAuthContext();
 
-  // Handle saving a new or edited entry
-  const handleSave = () => {
-    if (!currentEntry.trim()) return;
+  useEffect(() => {
+    if (Authuser) {
+      fetchEntries();
+    }
+  }, [Authuser]);
 
-    if (editIndex !== null) {
-      // Edit existing entry
-      const updatedEntries = [...entries];
-      updatedEntries[editIndex] = currentEntry;
-      setEntries(updatedEntries);
-      setEditIndex(null);
-    } else {
-      // Add new entry
-      setEntries([...entries, currentEntry]);
+  // Fetch all journal entries
+  const fetchEntries = async () => {
+    try {
+      const response = await axios.get(
+        `http://localhost:5000/api/Journal/GetAllEmotionalJournalEntries/${Authuser?._id}`
+      );
+      setEntries(response.data.data.entries || []);
+    } catch (err) {
+      console.error("Error fetching entries:", err);
+    }
+  };
+
+  // Handle save or update entry
+  const handleSave = async () => {
+    if (!currentEntry.trim() || !currentEmotion.trim()) return;
+    if (!currentIntensity || currentIntensity < 0 || currentIntensity > 10 || !Number.isInteger(currentIntensity)) {
+      alert("Intensity must be an integer between 0 and 10");
+      return;
     }
 
-    setCurrentEntry("");
+    try {
+      // Analyze sentiment of the current entry
+      const sentimentResponse = await axios.post(
+        "http://localhost:8000/score/analyze-sentiment",
+        { text: currentEntry }
+      );
+
+      const { sentiment, confidence } = sentimentResponse.data;
+
+      // Map the sentiment label to readable text
+      const readableSentiment = mapSentimentLabel(sentiment);
+
+      // Set sentiment result for display
+      setSentimentResult({
+        sentiment: readableSentiment,
+        confidence: (confidence * 100).toFixed(2), // Convert to percentage
+      });
+
+      // If sentiment is negative, fetch recommendations
+      if (readableSentiment === "NEGATIVE") {
+        const recommendationResponse = await axios.post(
+          "http://localhost:8000/general/recommend",
+          { user_query: currentEntry }
+        );
+        setRecommendations(recommendationResponse.data); // Set recommendations
+      } else {
+        setRecommendations([]); // Clear recommendations if sentiment is not negative
+      }
+
+      const payload = {
+        content: currentEntry,
+        intensity: currentIntensity,
+        emotion: currentEmotion,
+        sentiment: readableSentiment,
+        confidence: confidence,
+        date: new Date().toISOString().split('T')[0], // Store the date in YYYY-MM-DD format
+      };
+
+      if (editId) {
+        await axios.put(
+          `http://localhost:5000/api/Journal/UpdateEmotionalJournalEntry/${editId}/${Authuser?._id}`,
+          payload
+        );
+        setEntries((prev) =>
+          prev.map((entry) =>
+            entry._id === editId ? { ...entry, ...payload } : entry
+          )
+        );
+        setEditId(null);
+      } else {
+        const response = await axios.post(
+          `http://localhost:5000/api/Journal/AddEmotionalJournalEntry/${Authuser?._id}`,
+          payload
+        );
+        setEntries((prev) => [...prev, response.data.journal.entries.pop()]);
+      }
+
+      setCurrentEntry("");
+      setCurrentIntensity(5);
+      setCurrentEmotion("");
+      inputRef.current.focus();
+    } catch (err) {
+      console.error("Error saving entry:", err);
+    }
+  };
+
+  // Function to map sentiment labels to readable text
+  const mapSentimentLabel = (label) => {
+    switch (label) {
+      case "LABEL_0":
+        return "NEGATIVE";
+      case "LABEL_1":
+        return "NEUTRAL";
+      case "LABEL_2":
+        return "POSITIVE";
+      default:
+        return "UNKNOWN";
+    }
+  };
+
+  // Handle edit entry
+  const handleEdit = (entry) => {
+    setCurrentEntry(entry.content);
+    setCurrentIntensity(entry.intensity);
+    setCurrentEmotion(entry.emotion);
+    setEditId(entry._id);
     inputRef.current.focus();
   };
 
-  // Handle editing an entry
-  const handleEdit = (index) => {
-    setCurrentEntry(entries[index]);
-    setEditIndex(index);
-    inputRef.current.focus();
+  // Handle delete entry
+  const handleDelete = async (entryId) => {
+    try {
+      await axios.delete(
+        `http://localhost:5000/api/Journal/DeleteEmotionalJournalEntry/${entryId}/${Authuser?._id}`
+      );
+      setEntries(entries.filter((entry) => entry._id !== entryId));
+    } catch (err) {
+      console.error("Error deleting entry:", err);
+    }
   };
 
-  // Handle deleting an entry
-  const handleDelete = (index) => {
-    setEntries(entries.filter((_, i) => i !== index));
+  // Group entries by date
+  const groupEntriesByDate = () => {
+    const groupedEntries = {};
+
+    entries.forEach((entry) => {
+      const date = new Date(entry.date).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      }); // Format date properly
+      if (!groupedEntries[date]) {
+        groupedEntries[date] = [];
+      }
+      groupedEntries[date].push(entry);
+    });
+
+    return groupedEntries;
   };
+
+  // Toggle expanded state for a date
+  const toggleExpand = (date) => {
+    setExpandedDates((prev) => ({
+      ...prev,
+      [date]: !prev[date], // Toggle expanded state
+    }));
+  };
+
+  const groupedEntries = groupEntriesByDate();
+
+  // Array of colors for different days
+  const colors = ["bg-pink-50", "bg-blue-50", "bg-green-50", "bg-yellow-50"];
 
   return (
-    <div className="overflow-y-auto max-h-screen  p-8 font-sans">
+    <div className="overflow-y-auto max-h-screen p-8 font-sans">
       {/* Information Section */}
       <section>
         <h1 className="text-3xl font-bold text-pink-700">Emotional Journal</h1>
@@ -203,31 +517,29 @@ const EmotionalJournal = () => {
           you can reflect on patterns, triggers, and find ways to manage your
           emotional responses.
         </p>
-
-        <h2 className="text-2xl font-semibold mt-4">
-          How to Journal Your Emotions
-        </h2>
-        <ul className="list-disc list-inside mt-2 text-gray-700">
-          <li>Be honest with yourself—don't hold back your feelings.</li>
-          <li>
-            Write freely without judgment, and let the words flow naturally.
-          </li>
-          <li>
-            Focus on what you're feeling right now, without worrying about
-            grammar or structure.
-          </li>
-          <li>
-            Reflect on why you feel this way, and explore the emotions behind
-            your thoughts.
-          </li>
-        </ul>
-
+        <div className="flex gap-4">
+          <img
+            src="https://firebasestorage.googleapis.com/v0/b/chat-app-f65de.appspot.com/o/generate%20a%20image%20of%20a%20journal%20used%20for%20journalling%20emotions%20_%2002-02-2025%20at%2003-02-42.jpeg?alt=media&token=175e655b-c0e3-45e2-8f00-b9555e86eb84"
+            width={300}
+            alt=""
+          />
+          <img
+            src="https://firebasestorage.googleapis.com/v0/b/chat-app-f65de.appspot.com/o/generate%20a%20image%20of%20a%20journal%20used%20for%20journalling%20emotions%20_%2002-02-2025%20at%2003-02-40.jpeg?alt=media&token=0590c797-69c0-498b-9cc5-6567a370368a"
+            width={300}
+            alt=""
+          />
+          <img
+            src="https://firebasestorage.googleapis.com/v0/b/chat-app-f65de.appspot.com/o/generate%20a%20image%20of%20a%20journal%20used%20for%20journalling%20emotions%20_%2002-02-2025%20at%2003-02-34.jpeg?alt=media&token=021e065e-3263-4cb1-bf2e-c111c7e74ec6"
+            width={300}
+            alt=""
+          />
+        </div>
+        {/* Instructions */}
         <h2 className="text-2xl font-semibold mt-4">How to Get Started</h2>
         <p className="mt-2 text-gray-700">
           To begin journaling your emotions, simply write down what you're
           feeling in the moment. Use this space to express your joy, sadness,
-          anger, or any emotion you're experiencing. This practice helps build
-          emotional intelligence and resilience over time.
+          anger, or any emotion you're experiencing.
         </p>
       </section>
 
@@ -242,17 +554,40 @@ const EmotionalJournal = () => {
           className="w-full h-24 p-3 mt-2 border border-gray-300 rounded-md focus:ring focus:ring-pink-400"
         />
         <div className="mt-4">
+          <label className="block text-gray-700">Intensity (0-10):</label>
+          <input
+            type="number"
+            min="0"
+            max="10"
+            value={currentIntensity}
+            onChange={(e) => setCurrentIntensity(parseInt(e.target.value))}
+            className="w-full p-2 border border-gray-300 rounded-md focus:ring focus:ring-pink-400"
+          />
+        </div>
+        <div className="mt-4">
+          <label className="block text-gray-700">Emotion Felt:</label>
+          <input
+            type="text"
+            value={currentEmotion}
+            onChange={(e) => setCurrentEmotion(e.target.value)}
+            placeholder="Enter the emotion you're feeling"
+            className="w-full p-2 border border-gray-300 rounded-md focus:ring focus:ring-pink-400"
+          />
+        </div>
+        <div className="mt-4">
           <button
             onClick={handleSave}
             className="bg-pink-700 text-white px-4 py-2 rounded-full mr-2 hover:bg-pink-800 transition"
           >
-            {editIndex !== null ? "Update Entry" : "Save Entry"}
+            {editId ? "Update Entry" : "Save Entry"}
           </button>
-          {editIndex !== null && (
+          {editId && (
             <button
               onClick={() => {
                 setCurrentEntry("");
-                setEditIndex(null);
+                setCurrentIntensity(5);
+                setCurrentEmotion("");
+                setEditId(null);
               }}
               className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition"
             >
@@ -262,6 +597,56 @@ const EmotionalJournal = () => {
         </div>
       </section>
 
+      {/* Sentiment Analysis Result */}
+      {sentimentResult && (
+        <section className="mt-8">
+          <h2 className="text-2xl font-semibold">Sentiment Analysis</h2>
+          <div className="bg-white p-4 rounded-md shadow-md mt-4">
+            <p className="text-gray-800">
+              <strong>Sentiment:</strong> {sentimentResult.sentiment}
+            </p>
+            <p className="text-gray-800">
+              <strong>Confidence:</strong> {sentimentResult.confidence}%
+            </p>
+          </div>
+        </section>
+      )}
+
+      {/* Recommendations Section */}
+      {recommendations.length > 0 && (
+        <section className="mt-8">
+          <h2 className="text-2xl font-semibold">Recommendations for You</h2>
+          <div className="mt-4 space-y-4">
+            {recommendations.map((item, index) => (
+              <div
+                key={index}
+                className="bg-white p-4 rounded-md shadow-md flex flex-col space-y-2"
+              >
+                <h3 className="text-xl font-semibold text-pink-700">
+                  {item.title}
+                </h3>
+                <p className="text-gray-800">
+                  <strong>Type:</strong> {item.type}
+                </p>
+                <p className="text-gray-800">
+                  <strong>Description:</strong> {item.description}
+                </p>
+                {item.link && (
+                  <a
+                    href={item.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:text-blue-800"
+                  >
+                    Watch/Read More
+                  </a>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Display Entries Section */}
       <section className="mt-8">
         <h2 className="text-2xl font-semibold">Previous Emotional Entries</h2>
@@ -270,30 +655,58 @@ const EmotionalJournal = () => {
             No entries yet. Start by journaling your emotions above.
           </p>
         ) : (
-          <ul className="mt-4 space-y-4">
-            {entries.map((entry, index) => (
-              <li
-                key={index}
-                className="bg-white p-4 rounded-md shadow-md flex justify-between items-center"
-              >
-                <p className="text-gray-800">{entry}</p>
-                <div>
-                  <button
-                    onClick={() => handleEdit(index)}
-                    className="bg-pink-700 text-white px-3 py-1 rounded-md mr-2 hover:bg-pink-800 transition"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(index)}
-                    className="bg-red-600 text-white px-3 py-1 rounded-md hover:bg-red-700 transition"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
+          Object.keys(groupedEntries).map((date, index) => (
+            <div
+              key={date}
+              className={`${colors[index % colors.length]} p-4 rounded-lg shadow-md mt-4`}
+            >
+              <h3 className="text-xl font-semibold text-pink-700 mb-4">
+                {date}
+              </h3>
+              <ul className="space-y-4">
+                {groupedEntries[date]
+                  .slice(0, expandedDates[date] ? groupedEntries[date].length : 3) // Show only 3 entries initially
+                  .map((entry) => (
+                    <li
+                      key={entry._id}
+                      className="bg-white p-4 rounded-md shadow-md flex flex-col space-y-2"
+                    >
+                      <p className="text-gray-800">
+                        <strong>Journal:</strong> {entry.content}
+                      </p>
+                      <p className="text-gray-800">
+                        <strong>Intensity:</strong> {entry.intensity}/10
+                      </p>
+                      <p className="text-gray-800">
+                        <strong>Emotion:</strong> {entry.emotion}
+                      </p>
+                      <div className="flex justify-end">
+                        <button
+                          onClick={() => handleEdit(entry)}
+                          className="bg-pink-700 text-white px-3 py-1 rounded-md mr-2 hover:bg-pink-800 transition"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDelete(entry._id)}
+                          className="bg-red-600 text-white px-3 py-1 rounded-md hover:bg-red-700 transition"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+              </ul>
+              {groupedEntries[date].length > 3 && (
+                <button
+                  onClick={() => toggleExpand(date)}
+                  className="mt-4 text-pink-700 hover:text-pink-800 transition"
+                >
+                  {expandedDates[date] ? "Show Less..." : "Show More..."}
+                </button>
+              )}
+            </div>
+          ))
         )}
       </section>
     </div>

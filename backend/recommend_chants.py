@@ -31,7 +31,7 @@ async def get_chants_recommendation(request: ChantsRecommendationRequest):
     chants_embeddings = []
     texts = []
     for entry in chants_data:
-        text = f"{entry.get('title', '')} {entry.get('description', '')} {entry.get('Benefits', '')}"
+        text = f"{entry.get('description', '')}"
         embedding = model.encode(text, convert_to_tensor=True)
         chants_embeddings.append(embedding)
         texts.append(entry)
@@ -46,7 +46,6 @@ async def get_chants_recommendation(request: ChantsRecommendationRequest):
             match = {
                 "title": texts[idx].get("title"),
                 "description": texts[idx].get("description"),
-                "benefits": texts[idx].get("Benefits"),
                 "link": texts[idx].get("link", "No link provided")
             }
             top_matches.append(match)

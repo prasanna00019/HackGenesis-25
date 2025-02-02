@@ -8,6 +8,8 @@ import MeditationRoutes from './routes/MeditationRoutes.js';
 import ChantRoutes from './routes/ChantRoutes.js';
 import BlogRoutes from './routes/BlogRoutes.js';
 import JournalRoutes from './routes/JournalRoutes.js';
+import QuoteRoutes from './routes/QuotesRoutes.js';
+import UserRoutes from './routes/UserRoutes.js';
 import http from 'http';
 dotenv.config()
 import cors from 'cors';
@@ -29,6 +31,8 @@ app.use('/api/Meditation',MeditationRoutes);
 app.use('/api/Chants',ChantRoutes);
 app.use('/api/Blogs',BlogRoutes);
 app.use('/api/Journal',JournalRoutes);
+app.use('/api/Quotes',QuoteRoutes);
+app.use('/api/User',UserRoutes);
 server.listen(process.env.PORT,()=>{
     connectDB();
     console.log(`server is running on port ${process.env.PORT}`);
