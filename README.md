@@ -81,6 +81,8 @@ This project is a guiding light for those on the path of self-discovery, inner p
 
 ---
 
+👉 **[View the Project Presentation on Google Slides](https://docs.google.com/presentation/d/13wrOwOZU9Lg5areN8r_SDRLg7yZ1I7vE/edit?usp=sharing&ouid=117988806124287122523&rtpof=true&sd=true)** 📊
+
 ## 📦 Repository
 
 🔗 [HackGenesis-25 GitHub Repository](https://github.com/prasanna00019/HackGenesis-25)
